@@ -1,9 +1,11 @@
 var Sequelize = require('sequelize');
 var slug = require('slug');
 var permalinkModel = require('./modules/permalink.js');
+var favoritModel = require('./modules/favorit.js');
 var _Article = undefined;
 var _Permalink;
-var _db = null;
+var _Favorit;
+var _User;
 
 var generateFinalPermalink=function(article){
   //_db.query('SELECT count(*) AS "count" FROM "articles" AS "article" WHERE "article"."permalinks" @> ARRAY[\'[{"refPermalink":"beautifull-title-for-an-article"}]\'::jsonb]::jsonb[]').then(function(count){
@@ -51,6 +53,7 @@ var generatePermalink=function(article){
 }
 
 
+
 module.exports.model = {
   title: {type:Sequelize.STRING, allowNull:false},
   permalink: {type:Sequelize.STRING, allowNull:false},
@@ -67,12 +70,26 @@ module.exports.methods = {
                               }
                             },
                             classMethods:{
-                              findArticle: function(permalink, includes){
+                              favorit(){
+                                return _Favorit;
+                              },
+                              findFromPermalink: function(permalink, includes){
                                 if(includes == null){
                                   includes = [];
                                 }
                                 includes.push({model: _Permalink, where: {permalink: permalink}});
                                 return this.findOne({include:includes});
+                              },
+                              createFavorite(articleId, userId){
+                                return _Favorit.create({userId: userId, articleId: articleId});
+                              },
+                              defineRelations: function(daos){
+                                if("User" in daos){
+                                  daos.User.hasMany(_Article);
+                                  _Article.belongsTo(daos.User);
+                                  daos.User.hasMany(_Favorit);
+                                  _Favorit.belongsTo(daos.User);
+                                }
                               }
                             }
                           };
@@ -80,8 +97,10 @@ module.exports.methods = {
 module.exports.define=function(db, fullModel){
     _Article = db.define(fullModel.tableName, fullModel.model, fullModel.methods);
     _Permalink = db.define(fullModel.tableName+'_permalink', permalinkModel);
+    _Favorit = db.define(fullModel.tableName+'_favorit', favoritModel);
     _Article.hasMany(_Permalink);
     _Permalink.belongsTo(_Article);
-      _db = db;
+    _Article.hasMany(_Favorit);
+    _Favorit.belongsTo(_Article);
     return _Article;
 }

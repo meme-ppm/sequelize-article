@@ -89,8 +89,6 @@ describe("Test user - ", function(){
   var user2Pr;
   var article1Pr;
   var article2Pr;
-  var favorit1Pr;
-  var favorit2Pr;
 
   it('create users', function () {
      userPr1 = User.createUser({login:"test1", email:"test1@gmail.com", password:"testTestTest"});
@@ -109,12 +107,31 @@ describe("Test user - ", function(){
      favorit22Pr = Article.createFavorite(article2Pr.value().id, userPr2.value().id);
      favorit12Pr = Article.createFavorite(article1Pr.value().id, userPr2.value().id);
      favorit11Pr = Article.createFavorite(article1Pr.value().id, userPr1.value().id);
+
      return Promise.all([favorit12Pr, favorit22Pr,favorit11Pr, favorit21Pr]);
   })
   it('find user favorit article', function() {
-    return User.find({include:{model: Article.favorit(), include:{model:Article}}}).then(function(user){
-      console.log("user ", user.get({plain:true}).article_favorits[0].article);
+    return User.findOne({include:{model: Article, as: 'favorits'}}).then(function(user){
+      console.log("user ", user.get({plain:true}));
     })
+  })
+  it('find user favorit article', function() {
+    return User.findOne({include:{model: Article, as: 'favorits'}}).then(function(user){
+      user = user.get({plain:true})
+      assert.equal(user.favorits.length, 2);
+    })
+  })
+  it('count article favorits', function() {
+  return Article.favorit().findAll({attributes:[ [Sequelize.fn('COUNT', 'article_favorits.id'), 'favorits']], include:{model:Article}, group:['article_favorit.articleId', 'article.id']}).then(function(results){
+      results.forEach(function(result){
+        console.log("result ", result.get({plain:true}));
+      })
+    });
+    /*return Article.findAll({ attributes:["article.*", [Sequelize.fn('COUNT', 'article_favorits.id'), 'count']],group:['article.id'], include:{model: Article.favorit(), attributes: []}}).then(function(articles){
+        articles.forEach(function(article){
+          console.log("article ", article.get({plain:true}));
+        })
+    })*/
   })
   /*it('find article favorits', function () {
       return Article.find({where:{id:article1Pr.value().id}, include:})

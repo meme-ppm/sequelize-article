@@ -87,8 +87,8 @@ module.exports.methods = {
                                 if("User" in daos){
                                   daos.User.hasMany(_Article);
                                   _Article.belongsTo(daos.User);
-                                  daos.User.hasMany(_Favorit);
-                                  _Favorit.belongsTo(daos.User);
+                                  daos.User.belongsToMany(_Article, {as: "favorits", through : _Favorit});
+                                  _Article.belongsToMany(daos.User, {as: "favorits", through : _Favorit});
                                 }
                               }
                             }

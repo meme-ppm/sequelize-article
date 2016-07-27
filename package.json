@@ -1,7 +1,7 @@
 {
   "name": "sequelize-article",
   "version": "1.0.0",
-  "description": "Add a set of usefull functions to a blog article: comments, favorits etc.. ",
+  "description": "Add a set of usefull functions to a blog article: permalink, and favorit for now etc.. ",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
